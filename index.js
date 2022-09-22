@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const app = express();
 
@@ -16,7 +17,18 @@ async function run() {
     try {
         await client.connect();
         const serviceCollection = client.db("geniusService").collection("service")
+        const orderCollection = client.db('geniusService').collection('order')
 
+        // AUTH
+        app.post('/login', async(req,res)=>{
+            const user = req.body;
+            const accessToken = jst.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            })
+            res.send({accessToken});
+        })
+
+        // GET API
         app.get('/service', async (req, res) => {
             const query = {};
             const cursor = serviceCollection.find(query);
@@ -46,6 +58,23 @@ async function run() {
             res.send(result)
         })
 
+        // order collection post
+
+        app.post('/order', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result)
+        })
+
+        app.get('/orders', async (req, res) => {
+            const email = req.query.email;
+            console.log(email)
+            const query = { email: email };
+            const cursor = orderCollection.find(query);
+            const orders = await cursor.toArray();
+            res.send(orders);
+        })
+
     }
     finally {
 
@@ -60,5 +89,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log('server running')
+    console.log('server running', port)
 })
