@@ -88,6 +88,10 @@ app.get('/', (req, res) => {
     res.send('hello from node express');
 })
 
+app.get('/hero', (req,res)=>{
+    res.send('hello from heroku');
+})
+
 app.listen(port, () => {
     console.log('server running', port)
 })
